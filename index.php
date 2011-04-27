@@ -8,7 +8,8 @@
 
 // config
 $institutionGroup = "CN=institution,OU=General,OU=Groups,DC=middlebury,DC=edu";
-
+$shortName = "shortname";
+$secretWord = "secretword";
 
 
 require_once('phpcas/source/CAS.php');
@@ -79,12 +80,43 @@ END;
 	exit;
 }
 
-print "Successfully Authenticated.";
-
 /*********************************************************
  * Build the Gartner URL
  *********************************************************/
+// Steps 1 & 2
+$query = 'fn='.$firstname
+		.appendParameter('ln', $lastname)
+		.appendParameter('em', $email)
+		.appendParameter('dt', time())
+		.appendParameter('comp', $shortName);
  
- 
- 
- 
+// Step 4
+$credential = $query.'&'.$secretWord;
+
+// Step 5
+$md5 = md5($credential);
+
+// Step 6.
+$query = $query.appendParameter('md5', $md5);
+
+// Step 7.
+$base64Query = base64_encode($query);
+
+// Step 8.
+$gartnerUrl = 'https://www.gartner.com/enterprise_access/common/eacportal.jsp?msg='.$base64Query;
+
+// Step 9.
+$gartnerUrl .= '&comp='.$shortName;
+
+// print($gartnerUrl);
+
+header('Location: '.$gartnerUrl);
+
+
+function appendParameter($param, $value) {
+  if ($value) {
+	 return '&'.$param.'='.$value;
+  } else {
+	 return '';
+  }
+}
